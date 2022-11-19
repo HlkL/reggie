@@ -40,12 +40,8 @@ public class EmployeeController {
         //将页面提交的密码进行md5加密
         String password = employee.getPassword();
         password = DigestUtils.md5DigestAsHex(password.getBytes());
-
-        //根据页面提交的用户名查询数据库
-        LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Employee::getUsername, employee.getUsername());
         //查询数据库中的数据
-        Employee emp = employeeService.getOne(queryWrapper);
+        Employee emp = employeeService.login(employee);
 
         //是否存在数据
         if (emp == null) {
@@ -65,7 +61,6 @@ public class EmployeeController {
         //登录成功,将员工id存入session中
         request.getSession().setAttribute("employee", emp.getId());
 
-
         return R.success(emp);
     }
 
@@ -76,7 +71,7 @@ public class EmployeeController {
      * @return
      */
     @PostMapping("/logout")
-    public R<Employee> login(HttpServletRequest request) {
+    public R<Employee> logout(HttpServletRequest request) {
         //清除session中的员工信息
         request.removeAttribute("employee");
         return R.success("退出成功");
@@ -111,15 +106,7 @@ public class EmployeeController {
     @GetMapping("/page")
     public R<Page> page(Integer page,Integer pageSize,String name){
         log.info("page={},pages={},name={}",page,pageSize,name);
-
-        //分页构造器
-        Page<Employee> pageInfo = new Page<>(page, pageSize);
-        //条件构造器
-        LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.like(StringUtils.isNotEmpty(name),Employee::getName,name)
-                .orderByDesc(Employee::getUpdateTime);
-        employeeService.page(pageInfo,queryWrapper);
-        return R.success(pageInfo);
+        return R.success(employeeService.page(page,pageSize,name));
     }
 
     /**
