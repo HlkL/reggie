@@ -2,8 +2,8 @@ package com.hg.reggie.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import org.springframework.util.DigestUtils;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
  * 员工实体
  */
 @Data
+@TableName("employee")
 public class Employee implements Serializable {
 
     private static final long serialVersionUID = 1L;
