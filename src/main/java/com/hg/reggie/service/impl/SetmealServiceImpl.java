@@ -1,5 +1,6 @@
 package com.hg.reggie.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -162,6 +164,27 @@ public class SetmealServiceImpl extends ServiceImpl<SetmealMapper, Setmeal> impl
 
         setmealDto.setSetmealDishes(dishList);
         return setmealDto;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateSetMeal(SetmealDto setmealDto) {
+        //删除订单的菜品信息
+        LambdaQueryWrapper<SetmealDish> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(SetmealDish::getSetmealId,setmealDto.getId());
+        setmealDishService.remove(queryWrapper);
+        //删除订单信息
+        this.removeById(setmealDto.getId());
+
+        //重置套餐id
+        setmealDto.setId(null);
+        List<SetmealDish> setmealDishes = setmealDto.getSetmealDishes();
+        setmealDishes.forEach( item -> {
+            item.setSetmealId(null);
+        });
+
+        //保存新的订单信息
+        this.saveWithDish(setmealDto);
     }
 
 

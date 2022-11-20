@@ -106,6 +106,12 @@ public class SetmealController {
         return R.success(setmealDto);
     }
 
+    @PutMapping
+    public R<String> update(@RequestBody SetmealDto setmealDto){
+        log.info("修改套餐信息...");
+        setmealService.updateSetMeal(setmealDto);
+        return R.success("修改成功");
+    }
 
 }
 

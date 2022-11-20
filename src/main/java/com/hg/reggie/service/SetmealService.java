@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hg.reggie.dto.SetmealDto;
 import com.hg.reggie.entity.Setmeal;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -28,4 +29,6 @@ public interface SetmealService extends IService<Setmeal> {
     void selling(Integer flag, String id);
 
     SetmealDto get(Long id);
+
+    void updateSetMeal( SetmealDto setmealDto);
 }
