@@ -8,6 +8,7 @@ import com.hg.reggie.entity.User;
 import com.hg.reggie.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author hougen
@@ -33,6 +35,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
     /**
      * 发送验证码
      * @return
@@ -48,8 +53,9 @@ public class UserController {
             //发送验证码
 //            emailUtil.sendSimpleMail(user.getPhone());
 
-            //需要将生成的验证码保存到Session
-            session.setAttribute(user.getPhone(), code);
+            //将生成的验证码缓存到Redis中,并设置2分钟失效时间
+            redisTemplate.opsForValue().set( user.getPhone(), code, 2, TimeUnit.MINUTES );
+
             return R.success("验证码发送成功");
         }
         return R.error("发送失败");
@@ -67,8 +73,8 @@ public class UserController {
         String phone = account.get("phone").toString();
         String code = account.get("code").toString();
 
-        //获取session中的验证码
-        String s = session.getAttribute(phone).toString();
+        //获取缓存中的验证码
+        String s = redisTemplate.opsForValue().get( phone ).toString();
 
         if( s != null && s.equals(code) ){
             LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
@@ -83,6 +89,10 @@ public class UserController {
                 userService.save(user);
             }
             session.setAttribute("user",user.getId());
+
+            //登录成功删除redis中缓存的验证码
+            redisTemplate.delete( phone );
+
             return R.success(user);
         }
         return R.error("登录失败");
